@@ -52,6 +52,7 @@ $table->boolean('verified')->default(false);
 Criar a tabela verification_tokens que irá guardar o token geardo para o usuário.
 
 ```php
+php artisan make:model VerificationToken
 php artisan make:migration verification_tokens
 ```
 
@@ -65,4 +66,33 @@ Rodar as migrações:
 
 ```php
 php artisan make:migrate
+```
+
+#### Configurando os relacionamentos
+
+Os relacionamentos entre User e VerificationToken ocorrem da seguinte maneira: um VerificationToken pertence(belongs to) a um User, ao passo que um User tem um (has one) VerificationToken.
+
+```php
+//User model
+public function verificationToken()
+{
+    return $this->hasOne(VerificationToken::class);
+}
+```
+
+```php
+//VerificationToken model
+public function user()
+{
+	return $this->belongsTo(User::class);
+}
+```
+
+Mudar o nome da rota para o modelo VerificationToken.
+
+```php
+public function getRouteKeyName()
+{
+	return 'token';
+}
 ```
