@@ -261,3 +261,48 @@ class SendVerificationEmail
     }
 }
 ```
+
+O método handle() recebe uma instancia do evento e envia o token do relacionamento.
+
+Finalmente devemos mapear o event listener no EventServiceProvider.
+
+```php
+protected $listen = [
+    'App\Events\UserRegistered' => [
+        'App\Listeners\SendVerificationEmail',
+    ],
+    'App\Events\UserRequestedVerificationEmail' => [
+        'App\Listeners\SendVerificationEmail',
+    ],
+];
+```
+
+#### Criando uma classe de email
+
+```php
+php artisan make:mail SendVerificationToken
+```
+
+```php
+use Queueable, SerializesModels;
+public $token;
+
+public function __construct(VerificationToken $token)
+{
+    $this->token = $token;
+}
+
+public function build()
+{
+    return $this->subject('Please verify your email')
+            ->view('email.auth.verification');
+}
+```
+
+Criar uma view de email em: email/auth/verification.blade.php:
+
+```php
+To verify your account, visit the following link. <br> <br>
+
+<a href="{{ route('auth.verify', $token) }}">Verify now</a>
+```
