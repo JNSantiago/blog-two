@@ -131,3 +131,46 @@ Definir as duas rotas correspondentes ao VerificationController.
 Route::get('/verify/token/{token}', 'Auth\VerificationController@verify')->name('auth.verify'); 
 Route::get('/verify/resend', 'Auth\VerificationController@resend')->name('auth.verify.resend');
 ```
+
+#### Alterando o Auth Controllers
+
+Quando registramos uma conta, o usuário é logado por padrão. O RegisterController usa o RegistersUsers, que é definido em Illuminate\Foundation\Auth. Nós podemos sobrescrever o método registered() no RegisterController para deslogar o usuário imediatamente após o cadastro.
+
+```php
+protected function registered(Request $request, $user)
+{
+    $this->guard()->logout();
+
+    return redirect('/login')->withInfo('Please verify your email');
+}
+```
+
+O método guard é definido em RegistersUsers e irá pegar o usuário logado e deslogá-lo. Redirecionamos então o usuário para a página de login com a devida mensagem.
+
+Nós precisamos garantir que o usuário não possa se logar sem que tenha verificado o email. Tem muitas maneiras de fazer, mas a mais simples delas é sobrescrever o método authenticated() de AuthenticatesUsers, no nosso LoginController:
+
+```php
+protected function authenticated(Request $request, $user)
+{
+    if(!$user->hasVerifiedEmail()) {
+        $this->guard()->logout();
+
+        return redirect('/login')
+            ->withError('Por favor ative a sua conta. <a href="' . route('auth.verify.resend') . '?email=' . $user->email .'">Reenviar?</a>');
+    }
+}
+```
+
+Quando o usuário resetar o email com sucesso, por padrão o laravel o loga. O ResetPasswordController usa o ResetsPasswords de Illuminate\Foundation\Auth, e implementa o método sendResetResponse(), que verifica se o reset foi realizado com sucesso. Precisamos sobrescrever esse método no ResetPasswordController.
+
+```php
+protected function sendResetResponse($response)
+{
+    if(!$this->guard()->user()->hasVerifiedEmail()) {
+        $this->guard()->logout();
+        return redirect('/login')->withInfo('Password changed successfully. Please verify your email');
+    }
+    return redirect($this->redirectPath())
+                        ->with('status', trans($response));
+}
+```

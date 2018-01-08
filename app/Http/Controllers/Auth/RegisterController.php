@@ -68,4 +68,10 @@ class RegisterController extends Controller
             'password' => bcrypt($data['password']),
         ]);
     }
+
+    protected function registered(Request $request, $user)
+    {
+        $this->guard()->logout();
+        return redirect('/login')->withInfo('Por favor verifique o seu email!');
+    }
 }

@@ -36,4 +36,14 @@ class LoginController extends Controller
     {
         $this->middleware('guest')->except('logout');
     }
+
+    protected function authenticated(Request $request, $user)
+    {
+        if(!$user->hasVerifiedEmail()) {
+            $this->guard()->logout();
+
+            return redirect('/login')
+                ->withError('Por favor ative a sua conta. <a href="' . route('auth.verify.resend') . '?email=' . $user->email .'">Reenviar?</a>');
+        }
+    }
 }
