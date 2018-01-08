@@ -78,6 +78,16 @@ public function verificationToken()
 {
     return $this->hasOne(VerificationToken::class);
 }
+
+public function hasVerifiedEmail()
+{
+    return $this->verified;
+}
+
+public static function byEmail($email)
+{
+    return static::where('email', $email);
+}
 ```
 
 ```php
@@ -135,6 +145,11 @@ Route::get('/verify/resend', 'Auth\VerificationController@resend')->name('auth.v
 #### Alterando o Auth Controllers
 
 Quando registramos uma conta, o usuário é logado por padrão. O RegisterController usa o RegistersUsers, que é definido em Illuminate\Foundation\Auth. Nós podemos sobrescrever o método registered() no RegisterController para deslogar o usuário imediatamente após o cadastro.
+
+```php
+use Illuminate\Http\Request;
+use Auth;
+```
 
 ```php
 protected function registered(Request $request, $user)
@@ -310,13 +325,19 @@ To verify your account, visit the following link. <br> <br>
 #### Verificando o usuário
 
 No método verify() do VerificationController, o token do email e validado e o status do usuario e alterado.
+Importar:
+
+```php
+use App\User;
+use App\Events\UserRequestedVerificationEmail;
+```
 
 ```php
 public function verify(VerificationToken $token)
 {
-    $token->user()->update([
-        'verified' => true
-    ]);
+    $user = User::find($token->user_id);
+    $user->verified = true;
+    $user->save();
 
     $token->delete();
 
@@ -327,4 +348,47 @@ public function verify(VerificationToken $token)
 
     return redirect('/login')->withInfo('Email verification succesful. Please login again');
 }
+```
+
+#### Reenviando o email de verificação
+
+```php
+public function resend(Request $request)
+{
+    $user = User::byEmail($request->email)->firstOrFail();
+
+    if($user->hasVerifiedEmail()) {
+        return redirect('/home');
+    }
+
+    event(new UserRequestedVerificationEmail($user));
+
+    return redirect('/login')->withInfo('Verification email resent. Please check your inbox');
+}
+```
+
+#### Views de erro
+
+Criar view layouts/partials/_notifications.blade.php
+
+```html
+<div class="row">
+    <div class="col-md-6 col-md-offset-3">
+        @if(session()->has('error'))
+            <div class="alert alert-danger">
+                {!! session()->get('error') !!}
+            </div>
+        @endif
+
+        @if(session()->has('info'))
+            <div class="alert alert-info">
+                {!! session()->get('info') !!}
+            </div>
+        @endif
+    </div>
+</div>
+```
+
+```php
+@include('layouts.partials._notifications')
 ```

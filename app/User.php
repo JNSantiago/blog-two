@@ -31,4 +31,13 @@ class User extends Authenticatable
     {
         return $this->hasOne(VerificationToken::class);
     }
+
+    public function hasVerifiedEmail()
+    {
+        return $this->verified;
+    }
+    public static function byEmail($email)
+    {
+        return static::where('email', $email);
+    }
 }
