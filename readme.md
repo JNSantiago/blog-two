@@ -207,3 +207,17 @@ public function __construct(User $user)
     $this->user = $user;
 }
 ```
+
+#### Criando um UserRequestedVerificationEmail
+
+Um novo evento será criado afim de que o usuário possa solicitar um reenvio de email. Criar um UserRequestedVerificationEmail.
+
+```php
+public $user;
+
+public function __construct(User $user)
+{
+    $this->user = $user;
+}
+```
+
