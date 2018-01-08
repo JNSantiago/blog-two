@@ -174,3 +174,21 @@ protected function sendResetResponse($response)
                         ->with('status', trans($response));
 }
 ```
+
+#### Registrando um Service Provider para Eloquent Events
+
+Agora nós vamos criar um service provider e registra-lo em config\app.php. Este service provider irá observar um especifico Eloquent Event: created no nosso modelo user.
+
+```php
+public function boot()
+{
+    User::created(function($user) {
+
+        $token = $user->verificationToken()->create([
+            'token' => bin2hex(random_bytes(32))
+        ]);
+
+        event(new UserRegistered($user));
+    });
+}
+```
