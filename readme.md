@@ -177,7 +177,7 @@ protected function sendResetResponse($response)
 
 #### Registrando um Service Provider para Eloquent Events
 
-Agora nós vamos criar um service provider e registra-lo em config\app.php. Este service provider irá observar um especifico Eloquent Event: created no nosso modelo user.
+Agora nós vamos criar um service provider e registra-lo em config\app.php. Este service provider irá observar um especifico Eloquent Event: created no nosso modelo user. Com este service, quando um usuário for criado é gerado um token para este usuário. É usado a função random_bytes() para gerar 64 caracteres, e um evento UserRegistered é chamado.
 
 ```php
 public function boot()
@@ -190,5 +190,20 @@ public function boot()
 
         event(new UserRegistered($user));
     });
+}
+```
+
+#### Criando um UserRegistered event
+
+A idéia por trás de usar events e listeners aqui é além de disparam um email de verificação, é que posteriormente também poderemos enviar um e-mail de boas-vindas, ou fazer algumas coisas de pagamento quando um usuário se registrar. Podemos facilmente ligar tudo sem muita refatoração.
+
+Abaixo segue o código de UserRegistered event (Criar pasta Events se nao houver):
+
+```php
+public $user;
+
+public function __construct(User $user)
+{
+    $this->user = $user;
 }
 ```
