@@ -96,3 +96,38 @@ public function getRouteKeyName()
 	return 'token';
 }
 ```
+
+#### Configurando o VerificationController e as rotas
+
+Nós criaremos o VerificationController para verificar o token e reenviar o email de verificação. Neste controller, haverão dois métodos:
+
+* verify(): Método que irá receber uma instância do modelo VerificationToken
+* resend(): Método que será usado para reenviar o email de confirmação para o usuário.
+
+Abaixo segue o exemplo do VerificationController (Movê-lo para App\Http\Controllers\Auth) e alterar namespace para 'namespace App\Http\Controllers\Auth;'.
+
+```php
+php artisan make:controller VerificationController
+```
+
+```php
+class VerificationController extends Controller
+{
+    public function verify(VerificationToken $token)
+    {
+    	//
+    }
+
+    public function resend(Request $request)
+    {
+    	//
+    }
+}
+```
+
+Definir as duas rotas correspondentes ao VerificationController.
+
+```php
+Route::get('/verify/token/{token}', 'Auth\VerificationController@verify')->name('auth.verify'); 
+Route::get('/verify/resend', 'Auth\VerificationController@resend')->name('auth.verify.resend');
+```
